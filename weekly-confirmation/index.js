@@ -11,8 +11,8 @@ var config = {
 var sparkpostClient = new Sparkpost(secrets.SPARKPOST_KEY)
 
 Firebase.initializeApp(config);
-db = Firebase.database()
-var ref = db.ref("/accounts")
+var db = Firebase.database();
+var ref = db.ref("/accounts");
 ref.once("value", function(snapshot) {
    sendEmails(snapshot.val());
 });
