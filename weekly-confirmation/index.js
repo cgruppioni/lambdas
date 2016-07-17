@@ -10,33 +10,37 @@ var config = {
 
 var sparkpostClient = new Sparkpost(secrets.SPARKPOST_KEY)
 
-Firebase.initializeApp(config);
-var db = Firebase.database();
-var ref = db.ref("/accounts");
-ref.once("value", function(snapshot) {
-   sendEmails(snapshot.val());
-});
 
+
+exports.handler = function (event, context) {
+  Firebase.initializeApp(config);
+  var db = Firebase.database();
+  var ref = db.ref("/accounts");
+  ref.once("value", function(snapshot) {
+    sendEmails(snapshot.val(), context);
+  });
+}
 
 function getRecipient(account) {
-  encodedEmail = encodeURIComponent(account.email);
+  encodedEmail = encodeURIComponent(account.ceoEmail);
   link = "https://currentlyraising.com/weekly-confirmation?email=" + encodedEmail;
 
   accountObject = {
     "address": {
-      "email": account.email,
-      "name": account.founder
+      "email": account.ceoEmail,
+      "name": account.ceoNameFirst + ' ' + account.ceoNameLast
     },
     "metadata": {
       "company": account.companyName,
-      "link": link
+      "link": link,
+      "name": account.ceoNameFirst + ' ' + account.ceoNameLast
     }
   }
 
   return accountObject;
 }
 
-function sendEmails(accounts) {
+function sendEmails(accounts, context) {
   recipients = []
   _.map(accounts, function(account) {
     if (account !== undefined && account.status === true) {
@@ -57,10 +61,9 @@ function sendEmails(accounts) {
   }, function(err, res) {
     if (err) {
       console.log(err);
-      // context.fail(new Error("Account invite email failed to send - #{err}"))
     } else {
       console.log('Weekly confirmations sent succesfully.');
     }
-    // context.done(err, {email: event.email, link: event.invite_link})
+    context.done(err, recipients.length);
   });
 };
