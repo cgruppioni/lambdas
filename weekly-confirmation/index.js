@@ -68,7 +68,7 @@ function sendEmails(accounts, context) {
 };
 
 function getFriday() {
-  var d = new Date();
+  var date = new Date();
   var monday = new Date(+date+(7-(date.getDay()+2)%7)*86400000);
   return monday.setHours(0,0,0,0);
 }
