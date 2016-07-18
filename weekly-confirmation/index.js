@@ -2,14 +2,12 @@ var Firebase = require("firebase");
 var _ = require('underscore');
 var secrets = require("./secrets.json");
 var Sparkpost = require('sparkpost');
+var sparkpostClient = new Sparkpost(secrets.SPARKPOST_KEY)
 
 var config = {
     serviceAccount: secrets.SERVICE_ACCOUNT_PATH,
     databaseURL: secrets.FIREBASE_URL
 };
-
-var sparkpostClient = new Sparkpost(secrets.SPARKPOST_KEY)
-
 
 
 exports.handler = function (event, context) {
@@ -41,9 +39,10 @@ function getRecipient(account) {
 }
 
 function sendEmails(accounts, context) {
-  recipients = []
+  var confirmationDate = getFriday();
+  var recipients = []
   _.map(accounts, function(account) {
-    if (account !== undefined && account.status === true) {
+    if (account !== undefined && account.lastConfirmedAt < confirmationDate) {
       recipient = getRecipient(account);
       recipients.push(recipient);
     }
@@ -67,3 +66,9 @@ function sendEmails(accounts, context) {
     context.done(err, recipients.length);
   });
 };
+
+function getFriday() {
+  var d = new Date();
+  var monday = new Date(+date+(7-(date.getDay()+2)%7)*86400000);
+  return monday.setHours(0,0,0,0);
+}
